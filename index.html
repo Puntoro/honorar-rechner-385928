@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Honorar">
+<meta name="theme-color" content="#eef2ef">
+<title>Honorar-Rechner</title>
+<style>
+  :root{ --ink:#16241c; --muted:#5b6b61; --line:#d9e2db; --green:#1b7a3d; --green-bg:#e8f5ec; --card:#fff; --bg:#eef2ef; --del:#b4232a; }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body{ font-family:-apple-system,"Helvetica Neue",Arial,sans-serif; margin:0; background:var(--bg); color:var(--ink); padding:10px; }
+  .wrap{ max-width:920px; margin:0 auto; }
+  h1{ font-size:19px; margin:2px 4px 8px; }
+  .panel{ background:var(--card); border-radius:14px; padding:12px 14px; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+  .panel h2{ font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:0 0 8px; }
+  #posten{ display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:3px 16px; }
+  .prow{ display:flex; align-items:center; gap:6px; padding:2px 0; }
+  .prow input.nm{ flex:1; min-width:0; height:38px; border:2px solid var(--line); border-radius:9px; padding:0 9px; font-size:14px; background:#fff; }
+  .prow input.std{ width:60px; height:38px; text-align:center; font-size:17px; font-weight:700; border:2px solid var(--line); border-radius:9px; background:#fff; -moz-appearance:textfield; }
+  .prow input.std::-webkit-outer-spin-button,.prow input.std::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+  .prow .unit{ font-size:12px; color:var(--muted); }
+  .prow .del{ width:30px; height:30px; border:none; background:transparent; color:var(--del); font-size:20px; cursor:pointer; line-height:1; padding:0; }
+  .add{ margin-top:8px; width:100%; height:40px; border:2px dashed var(--line); border-radius:10px; background:#fff; font-size:14px; font-weight:600; color:var(--green); cursor:pointer; touch-action:manipulation; }
+  .roles{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:0 20px; }
+  .role{ display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); }
+  .role .lab{ flex:1; }
+  .role .lab .nm{ font-size:15px; font-weight:600; }
+  .role .lab .rt{ font-size:11px; color:var(--muted); }
+  .role .lab .rt input{ width:50px; height:26px; text-align:center; border:1.5px solid var(--line); border-radius:6px; font-size:12px; }
+  .role .pct{ width:72px; height:42px; text-align:center; font-size:19px; font-weight:700; border:2px solid var(--line); border-radius:10px; background:#fff; -moz-appearance:textfield; }
+  .role .pct::-webkit-outer-spin-button,.role .pct::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+  .role .pctsign{ font-size:15px; color:var(--muted); margin-left:-3px; }
+  .nkrow{ display:inline-flex; align-items:center; gap:8px; font-size:14px; margin-right:24px; }
+  .nkrow input{ width:80px; height:36px; text-align:center; border:2px solid var(--line); border-radius:9px; font-size:15px; }
+  .calcbtn{ width:100%; height:56px; border:none; border-radius:14px; background:var(--green); color:#fff; font-size:19px; font-weight:700; cursor:pointer; touch-action:manipulation; box-shadow:0 2px 6px rgba(27,122,61,.3); }
+  .calcbtn:active{ background:#155f2f; }
+  .resetbtn{ width:100%; height:40px; margin-top:8px; border:2px solid var(--line); border-radius:10px; background:#fff; color:var(--muted); font-size:13px; font-weight:600; cursor:pointer; }
+  .result{ background:var(--green-bg); border:2px solid var(--green); }
+  .result .line{ display:flex; justify-content:space-between; font-size:15px; margin:7px 0; color:#2c3a31; }
+  .result .grand{ display:flex; justify-content:space-between; align-items:baseline; margin-top:9px; padding-top:11px; border-top:2px dashed var(--green); }
+  .result .grand span{ font-size:16px; font-weight:600; } .result .grand b{ font-size:34px; color:var(--green); }
+  .hint{ text-align:center; color:var(--muted); font-size:12px; margin:4px 0 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🧮 Honorar-Rechner</h1>
+
+  <div class="panel">
+    <h2>1 · Welche Arbeiten? — Stunden eintragen</h2>
+    <div id="posten"></div>
+    <button class="add" id="addBtn">+ Posten hinzufügen</button>
+  </div>
+
+  <div class="panel">
+    <h2>2 · Wer hat gearbeitet? — Anteil in %</h2>
+    <div class="roles">
+      <div class="role">
+        <div class="lab"><div class="nm">Architekt / Bauleiter</div><div class="rt">Satz <input id="rA" type="number" value="135" inputmode="numeric"> Fr.</div></div>
+        <input class="pct" id="pA" type="number" inputmode="numeric" placeholder="0"><span class="pctsign">%</span>
+      </div>
+      <div class="role">
+        <div class="lab"><div class="nm">Zeichnerin</div><div class="rt">Satz <input id="rZ" type="number" value="95" inputmode="numeric"> Fr.</div></div>
+        <input class="pct" id="pZ" type="number" inputmode="numeric" placeholder="0"><span class="pctsign">%</span>
+      </div>
+      <div class="role">
+        <div class="lab"><div class="nm">Lehrling</div><div class="rt">Satz <input id="rL" type="number" value="50" inputmode="numeric"> Fr.</div></div>
+        <input class="pct" id="pL" type="number" inputmode="numeric" placeholder="0"><span class="pctsign">%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>3 · Zuschläge</h2>
+    <span class="nkrow">Nebenkosten <input id="nk" type="number" value="0" inputmode="numeric"> Fr.</span>
+    <span class="nkrow">MwSt <input id="mwst" type="number" value="8.1" inputmode="decimal"> %</span>
+  </div>
+
+  <button class="calcbtn" id="calcBtn">Berechnen →</button>
+  <p class="hint" id="hint">Erst alles eintragen, dann auf „Berechnen" tippen.</p>
+
+  <div class="panel result" id="resultPanel" style="display:none">
+    <h2 style="color:var(--green)">Ergebnis</h2>
+    <div class="line"><span>Gesamte Stunden</span><span id="oH">–</span></div>
+    <div class="line"><span>Honorar (Stunden × Sätze)</span><span id="oNet">–</span></div>
+    <div class="line"><span>+ Nebenkosten</span><span id="oNk">–</span></div>
+    <div class="line"><span>+ MwSt</span><span id="oMwst">–</span></div>
+    <div class="grand"><span>= Total inkl. MwSt</span><b id="oTot">–</b></div>
+    <div class="line" id="pctWarn" style="color:var(--del);display:none">⚠️ Anteile ergeben <span id="sumP"></span> % statt 100 %</div>
+    <button class="resetbtn" id="resetBtn">Zurücksetzen</button>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const fmt = n => Math.round(n).toLocaleString('de-CH');
+  const startPosten = [
+    'Vorprojekt (3 Varianten)','Projektänderungen / Wünsche','Grobkostenermittlung (m³)',
+    'Baubeschrieb für Baueingabe','Bauingenieur (Offerte / Koord.)','Geologe (Offerte / Koord.)',
+    'Baustelleninstallationsplan','Aushub-Koordination Bagger','Nachbargespräche',
+    'Baueingabe (Pläne, Formulare)','Koordination Einsprache'
+  ];
+  const box = $('posten');
+  function addRow(name=''){
+    const row = document.createElement('div'); row.className='prow';
+    const nm = document.createElement('input'); nm.className='nm'; nm.type='text'; nm.value=name; nm.placeholder='Tätigkeit…';
+    const st = document.createElement('input'); st.className='std'; st.type='number'; st.inputMode='numeric'; st.placeholder='–';
+    const un = document.createElement('span'); un.className='unit'; un.textContent='Std';
+    const del = document.createElement('button'); del.className='del'; del.type='button'; del.textContent='×';
+    del.onclick = ()=> row.remove();
+    row.append(nm, st, un, del); box.appendChild(row);
+  }
+  startPosten.forEach(addRow);
+  $('addBtn').onclick = ()=> addRow('');
+
+  function berechnen(){
+    let G=0; box.querySelectorAll('input.std').forEach(s=> G += (+s.value||0));
+    const pA=+$('pA').value||0, pZ=+$('pZ').value||0, pL=+$('pL').value||0;
+    const rA=+$('rA').value||0, rZ=+$('rZ').value||0, rL=+$('rL').value||0;
+    const net = G*pA/100*rA + G*pZ/100*rZ + G*pL/100*rL;
+    const nk=+$('nk').value||0, mwst=+$('mwst').value||0;
+    const base=net+nk, tot=base*(1+mwst/100);
+    $('oH').textContent=G+' Std';
+    $('oNet').textContent=fmt(net)+' Fr.';
+    $('oNk').textContent=fmt(nk)+' Fr.';
+    $('oMwst').textContent=fmt(base*mwst/100)+' Fr.';
+    $('oTot').textContent=fmt(tot)+' Fr.';
+    const sum=pA+pZ+pL;
+    if(sum!==100 && sum!==0){ $('pctWarn').style.display='flex'; $('sumP').textContent=sum; }
+    else $('pctWarn').style.display='none';
+    $('resultPanel').style.display='block';
+    $('hint').style.display='none';
+    $('resultPanel').scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+  $('calcBtn').onclick = berechnen;
+  $('resetBtn').onclick = ()=>{ $('resultPanel').style.display='none'; $('hint').style.display='block'; };
+</script>
+</body>
+</html>
